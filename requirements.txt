@@ -1,0 +1,7 @@
+streamlit
+streamlit-pdf-viewer
+streamlit-extras
+groq
+langchain
+faiss-cpu
+sentence-transformers
