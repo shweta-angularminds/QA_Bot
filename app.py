@@ -3,7 +3,7 @@ import tempfile
 from components.sidebar import render_sidebar
 from components.pdf_viewer import render_pdf_viewer
 from components.chat_panel import init_chat, render_chat,chat_input
-
+from components.welcome import render_welcome_page
 
 from services.pdf_loader import load_and_split_pdf
 from services.vector_store import create_vector_store
@@ -16,57 +16,69 @@ init_chat()
 
 uploaded_files = render_sidebar()
 
-col1,col2 = st.columns([2,1])
 
 vector_store = None
 
-with col1:      
-     if uploaded_files:
+if uploaded_files:
+    col1,col2 = st.columns([2,1])
 
-        uploaded_file = uploaded_files[0]
+    with col1:  
+        with st.container(height=700,horizontal=True,horizontal_alignment="center"):    
+            if uploaded_files:
 
-        render_pdf_viewer(uploaded_file)
+                uploaded_file = uploaded_files[0]
 
-        # Save file temporarily
-        with tempfile.NamedTemporaryFile(delete=False, suffix=".pdf") as tmp:
-            tmp.write(uploaded_file.getvalue())
-            pdf_path = tmp.name
+                render_pdf_viewer(uploaded_file)
 
-        # Create vector store only once
-        if "vector_store" not in st.session_state:
+                # Save file temporarily
+                with tempfile.NamedTemporaryFile(delete=False, suffix=".pdf") as tmp:
+                    tmp.write(uploaded_file.getvalue())
+                    pdf_path = tmp.name
 
-            with st.spinner("Processing PDF..."):
+                # Create vector store only once
+                if "vector_store" not in st.session_state:
 
-                chunks = load_and_split_pdf(pdf_path)
+                    with st.spinner("Processing PDF..."):
 
-                vector_store = create_vector_store(chunks)
+                        chunks = load_and_split_pdf(pdf_path)
 
-                st.session_state.vector_store = vector_store
+                        vector_store = create_vector_store(chunks)
 
-        else:
-            vector_store = st.session_state.vector_store
+                        st.session_state.vector_store = vector_store
 
-with col2:
-    render_chat()
+                else:
+                    vector_store = st.session_state.vector_store
 
-    question = chat_input()
+    with col2:
+        with st.container(height=700):
+            st.subheader("💬 Q&A Chat")
+            with st.container(vertical_alignment="top",height=500):
+                render_chat()
 
-    if question and vector_store:
+            with st.container(vertical_alignment="bottom"):
+                question = chat_input()
 
-        st.session_state.messages.append(
-            {"role": "user", "content": question}
-        )
+                if question and vector_store:
 
-        with st.spinner("AI is thinking..."):
+                    st.session_state.messages.append(
+                        {"role": "user", "content": question}
+                    )
 
-            docs = vector_store.similarity_search(question, k=3)
+                    with st.spinner("AI is thinking..."):
 
-            context = "\n".join([doc.page_content for doc in docs])
+                        docs = vector_store.similarity_search(question, k=3)
 
-            answer = ask_llm(context, question)
+                        context = "\n".join([doc.page_content for doc in docs])
 
-        st.session_state.messages.append(
-            {"role": "assistant", "content": answer}
-        )
+                        answer = ask_llm(context, question)
 
-        st.rerun() 
+                    st.session_state.messages.append(
+                        {"role": "assistant", "content": answer}
+                    )
+
+                    st.rerun() 
+            
+else:
+    with st.container(height=800, border=True):
+
+        render_welcome_page()

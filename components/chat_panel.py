@@ -6,7 +6,7 @@ def init_chat():
         st.session_state.messages = []
         
 def render_chat():
-    st.subheader("💬 Q&A Chat")
+    
     
     for msg in st.session_state.messages:
         with st.chat_message(msg["role"]):
