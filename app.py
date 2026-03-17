@@ -10,7 +10,7 @@ from services.vector_store import create_vector_store
 from services.llm_service import ask_llm
 
 
-st.set_page_config(layout="wide",page_title="Q&A Boat")
+st.set_page_config(layout="wide",page_title="Q&A Boat", page_icon="assets/ai.png")
 
 init_chat()
 
